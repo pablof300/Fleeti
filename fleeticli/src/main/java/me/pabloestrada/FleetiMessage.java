@@ -13,4 +13,8 @@ public class FleetiMessage {
     public String toString() {
         return "[Fleeti] " + type.getName() + ": " + message;
     }
+
+    public static void printMessage(final FleetiMessage message) {
+        System.out.println(message);
+    }
 }

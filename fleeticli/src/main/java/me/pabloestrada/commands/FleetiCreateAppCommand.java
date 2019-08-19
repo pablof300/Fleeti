@@ -1,8 +1,9 @@
-package me.pabloestrada;
+package me.pabloestrada.commands;
 
+import me.pabloestrada.FleetiMessage;
+import me.pabloestrada.FleetiMessageType;
 import picocli.CommandLine;
 
-import java.awt.*;
 import java.io.*;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
@@ -11,7 +12,12 @@ import java.util.function.Consumer;
     name = "FleetiCLI",
     description = "Build a Fleeti App"
 )
-public class FleetiCommand implements Runnable {
+public class FleetiCreateAppCommand implements Runnable {
+
+    @CommandLine.Option(
+            names = { "-t" },
+            description = "Type of Fleeti subcommand ()")
+    private String type;
 
     @CommandLine.Option(
             names = { "-n", "--name" },
@@ -31,14 +37,9 @@ public class FleetiCommand implements Runnable {
             defaultValue = "me.pabloestrada")
     private String packageName;
 
-    public static void main(String[] args) {
-        new CommandLine(new FleetiCommand()).execute(args);
-    }
-
     public void run() {
-        printMessage(new FleetiMessage(FleetiMessageType.INFO, "Attempting to generate Fleeti app " + appName));
+        FleetiMessage.printMessage(new FleetiMessage(FleetiMessageType.INFO, "Attempting to generate Fleeti app " + appName));
         try {
-
             final ProcessBuilder builder = new ProcessBuilder();
             final File outputFile = new File(outputPath + appName);
             outputFile.mkdir();
@@ -56,40 +57,13 @@ public class FleetiCommand implements Runnable {
             builder.directory(outputFile);
 
             final Process process = builder.start();
-            final StreamGobbler streamGobbler =
-                    new StreamGobbler(process.getInputStream(), System.out::println);
-            Executors.newSingleThreadExecutor().submit(streamGobbler);
+            new FleetiBuildAPICommand()
+                    .setAppName(appName)
+                    .setOutputPath(outputPath)
+                    .run();
 
-            int exitVal = process.waitFor();
-            if (exitVal == 0) {
-                printMessage(new FleetiMessage(FleetiMessageType.SUCCESS, "Successfully generate Fleeti app " + appName));
-                System.exit(0);
-            } else {
-                printMessage(new FleetiMessage(FleetiMessageType.ERROR, "could not generate Fleeti app " + appName));
-            }
-
-        } catch (final IOException | InterruptedException e) {
+        } catch (final IOException e) {
             e.printStackTrace();
-        }
-    }
-
-    public void printMessage(final FleetiMessage message) {
-        System.out.println(message);
-    }
-
-    private static class StreamGobbler implements Runnable {
-        private InputStream inputStream;
-        private Consumer<String> consumer;
-
-        public StreamGobbler(InputStream inputStream, Consumer<String> consumer) {
-            this.inputStream = inputStream;
-            this.consumer = consumer;
-        }
-
-        @Override
-        public void run() {
-            new BufferedReader(new InputStreamReader(inputStream)).lines()
-                    .forEach(consumer);
         }
     }
 }
