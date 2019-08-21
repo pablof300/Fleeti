@@ -26,7 +26,7 @@ public class FleetiProcess
         this.commands = commands;
     }
 
-    public void execute(final Optional<String> concurrentCommand) {
+    public void execute() {
         commands.forEach(command -> {
             final ProcessBuilder commandBuilder = new ProcessBuilder();
             commandBuilder.command(command.getRawCommand().split(" "));
@@ -41,16 +41,12 @@ public class FleetiProcess
                             new FleetiMessage(FleetiMessageType.SUCCESS, "Successfully ran process for " + command.getRawCommand()));
                 } else {
                     FleetiMessage.printMessage(
-                            new FleetiMessage(FleetiMessageType.ERROR, "could not run process for command " + command.getRawCommand()));
+                            new FleetiMessage(FleetiMessageType.ERROR, "Could not run process for command " + command.getRawCommand()));
                 }
             } catch (final IOException | InterruptedException e) {
                 e.printStackTrace();
             }
         });
-    }
-
-    public void execute(final String concurrentCommand) {
-
     }
 
     private static class StreamGobbler implements Runnable {

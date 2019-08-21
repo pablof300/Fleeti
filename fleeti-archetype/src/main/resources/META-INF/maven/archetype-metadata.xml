@@ -20,6 +20,14 @@
             </includes>
         </fileSet>
 
+        <!-- ui files -->
+        <fileSet filtered="false" packaged="false">
+            <directory>ui/</directory>
+            <includes>
+                <include>**/*</include>
+            </includes>
+        </fileSet>
+
         <!-- cli (empty) -->
         <fileSet filtered="true" packaged="false">
             <directory>src/main/java/__packageInPathFormat__/cli</directory>

@@ -5,6 +5,7 @@ import me.pabloestrada.FleetiMessage;
 import me.pabloestrada.FleetiMessageType;
 import me.pabloestrada.FleetiProcess;
 import me.pabloestrada.ProcessOutput;
+import org.apache.commons.io.FileUtils;
 import picocli.CommandLine;
 
 import java.io.*;
@@ -42,8 +43,9 @@ public class FleetiCreateAppCommand implements Runnable {
 
     public void run() {
         FleetiMessage.printMessage(new FleetiMessage(FleetiMessageType.INFO, "Attempting to generate Fleeti app " + appName));
+        final String serviceBasePath = outputPath + appName + "/" + appName.toLowerCase();
         final File outputFile = new File(outputPath + appName);
-        final File mavenProjectFile = new File(outputPath + appName + "/" + appName.toLowerCase());
+        final File mavenProjectFile = new File(serviceBasePath);
         outputFile.mkdir();
 
         final Command archetypeGeneratorCommand = new Command(
@@ -58,12 +60,19 @@ public class FleetiCreateAppCommand implements Runnable {
                 "-DartifactId=" + appName.toLowerCase(),
                 outputPath + appName);
         final Command archetypeBuilderCommand = new Command(
-                "mvn clean package",outputPath + appName + "/" + appName.toLowerCase());
+                "mvn clean package",serviceBasePath);
 
         new FleetiProcess(List.of(archetypeGeneratorCommand, archetypeBuilderCommand)).execute();
+        try {
+            FileUtils.moveDirectory(new File(serviceBasePath + "/ui"), new File(outputPath + appName + "/ui"));
+            FileUtils.moveDirectory(new File(serviceBasePath), new File(outputPath + appName + "/service"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         new FleetiBuildAPICommand()
             .setAppName(appName)
             .setOutputPath(outputPath)
+            .setProjectBuilt(true)
             .run();
         System.exit(0);
     }

@@ -1,6 +1,6 @@
 import React from 'react';
 import styles from './BaseComponent.module.css'
-import { LauraApi } from '../../api/index'
+import { #name#Api } from '../../api/index'
 
 import { ReactLogo } from '../ReactLogo/index'
 
@@ -14,7 +14,7 @@ interface State {
 }
 
 export class BaseComponent extends React.Component<Props, State> {
-  private api: LauraApi = new LauraApi()
+  private api: #name#Api = new #name#Api()
 
   constructor(props: Props) {
     super(props)

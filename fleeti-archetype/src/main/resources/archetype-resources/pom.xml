@@ -68,11 +68,10 @@
                         <apiSource>
                             <springmvc>false</springmvc>
                             <locations>
-                                <location>${pacakge}.api.${name}RestMethods</location>
+                                <location>${package}.api.${name}RestMethods</location>
                             </locations>
                             <schemes>http,https</schemes>
-                            <host>http://localhost:8080/</host>
-                            <basePath>/swagger</basePath>
+                            <host>localhost:8080</host>
                             <info>
                                 <title>${name}</title>
                                 <version>1.0</version>

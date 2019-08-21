@@ -1,0 +1,9 @@
+# Compiled Java classes
+*.class
+
+# Maven generated code
+fleeticli/target
+
+*.DS_Store
+.idea*
+fleeti-archetype/target/*
