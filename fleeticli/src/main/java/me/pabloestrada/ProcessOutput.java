@@ -3,24 +3,36 @@ package me.pabloestrada;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 
 public class ProcessOutput
 {
-    public ProcessOutput(final Process process, final String appName) {
-        try {
-        final StreamGobbler streamGobbler =
-                new StreamGobbler(process.getInputStream(), System.out::println);
-        Executors.newSingleThreadExecutor().submit(streamGobbler);
+    private List<Process> processes;
+    private String appName;
 
-        int exitVal = process.waitFor();
-        if (exitVal == 0) {
-            FleetiMessage.printMessage(new FleetiMessage(FleetiMessageType.SUCCESS, "Successfully generate Fleeti app " + appName));
-            System.exit(0);
-        } else {
-            FleetiMessage.printMessage(new FleetiMessage(FleetiMessageType.ERROR, "could not generate Fleeti app " + appName));
-        }
+    public ProcessOutput(final List<Process> processes, final String appName) {
+        this.processes = processes;
+        this.appName = appName;
+    }
+
+    public void run() {
+        processes.forEach(this::print);
+    }
+
+    private void print(final Process process) {
+        try {
+            final StreamGobbler streamGobbler =
+                    new StreamGobbler(process.getInputStream(), System.out::println);
+            Executors.newSingleThreadExecutor().submit(streamGobbler);
+
+            int exitVal = process.waitFor();
+            if (exitVal == 0) {
+                FleetiMessage.printMessage(new FleetiMessage(FleetiMessageType.SUCCESS, "Successfully ran process for " + appName));
+            } else {
+                FleetiMessage.printMessage(new FleetiMessage(FleetiMessageType.ERROR, "could not run process for " + appName));
+            }
         } catch(final InterruptedException e) {
             e.printStackTrace();
         }
@@ -30,7 +42,7 @@ public class ProcessOutput
         private InputStream inputStream;
         private Consumer<String> consumer;
 
-        public StreamGobbler(InputStream inputStream, Consumer<String> consumer) {
+        StreamGobbler(InputStream inputStream, Consumer<String> consumer) {
             this.inputStream = inputStream;
             this.consumer = consumer;
         }

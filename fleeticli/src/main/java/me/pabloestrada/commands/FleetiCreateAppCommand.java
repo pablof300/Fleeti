@@ -1,7 +1,10 @@
 package me.pabloestrada.commands;
 
+import com.sun.tools.javac.util.List;
 import me.pabloestrada.FleetiMessage;
 import me.pabloestrada.FleetiMessageType;
+import me.pabloestrada.FleetiProcess;
+import me.pabloestrada.ProcessOutput;
 import picocli.CommandLine;
 
 import java.io.*;
@@ -39,31 +42,29 @@ public class FleetiCreateAppCommand implements Runnable {
 
     public void run() {
         FleetiMessage.printMessage(new FleetiMessage(FleetiMessageType.INFO, "Attempting to generate Fleeti app " + appName));
-        try {
-            final ProcessBuilder builder = new ProcessBuilder();
-            final File outputFile = new File(outputPath + appName);
-            outputFile.mkdir();
-            builder.command("mvn",
-                    "archetype:generate",
-                    "-B",
-                    "-DarchetypeGroupId=me.pabloestrada",
-                    "-DarchetypeArtifactId=fleeti-archetype",
-                    "-DarchetypeVersion=1.0",
-                    "-Dversion=" + "1.0",
-                    "-DgroupId=" + packageName,
-                    "-Dpackage=" + packageName,
-                    "-Dname=" + appName,
-                    "-DartifactId=" + appName.toLowerCase());
-            builder.directory(outputFile);
+        final File outputFile = new File(outputPath + appName);
+        final File mavenProjectFile = new File(outputPath + appName + "/" + appName.toLowerCase());
+        outputFile.mkdir();
 
-            final Process process = builder.start();
-            new FleetiBuildAPICommand()
-                    .setAppName(appName)
-                    .setOutputPath(outputPath)
-                    .run();
+        final Command archetypeGeneratorCommand = new Command(
+                "mvn archetype:generate -B " +
+                "-DarchetypeGroupId=me.pabloestrada " +
+                "-DarchetypeArtifactId=fleeti-archetype " +
+                "-DarchetypeVersion=1.0 " +
+                "-Dversion=" + "1.0 " +
+                "-DgroupId=" + packageName + " " +
+                "-Dpackage=" + packageName + " " +
+                "-Dname=" + appName + " " +
+                "-DartifactId=" + appName.toLowerCase(),
+                outputPath + appName);
+        final Command archetypeBuilderCommand = new Command(
+                "mvn clean package",outputPath + appName + "/" + appName.toLowerCase());
 
-        } catch (final IOException e) {
-            e.printStackTrace();
-        }
+        new FleetiProcess(List.of(archetypeGeneratorCommand, archetypeBuilderCommand)).execute();
+        new FleetiBuildAPICommand()
+            .setAppName(appName)
+            .setOutputPath(outputPath)
+            .run();
+        System.exit(0);
     }
 }

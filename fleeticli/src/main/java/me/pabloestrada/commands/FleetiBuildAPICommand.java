@@ -1,8 +1,12 @@
 package me.pabloestrada.commands;
 
+import com.sun.tools.javac.util.List;
+import me.pabloestrada.FleetiProcess;
+import me.pabloestrada.ProcessOutput;
 import picocli.CommandLine;
 
 import java.io.File;
+import java.io.IOException;
 
 public class FleetiBuildAPICommand implements Runnable {
 
@@ -25,22 +29,28 @@ public class FleetiBuildAPICommand implements Runnable {
 
     @Override
     public void run() {
-        final ProcessBuilder builder = new ProcessBuilder();
-        builder.command("openapi-generator",
-                "generate",
-                "-g",
-                "typescript-fetch",
-                "-i",
-                "");
-        //final File outputFile = new File(outputPath + appName);
+//        final File mavenProjectFile = new File(outputPath + appName + "/" + appName.toLowerCase());
+//        final ProcessBuilder runAPI = new ProcessBuilder();
+//        runAPI.command("java",
+//                "-jar",
+//                "/target/" + appName + "-1.0",
+//                "server",
+//                "/src/main/resources/config.yml");
+//        runAPI.directory(mavenProjectFile);
+//        System.out.println("Running the directory of " + mavenProjectFile.getAbsolutePath() + "/target/" + appName + "-1.0");
+        final Command runAPICommand = new Command(
+                "java -jar target/" + appName + "-1.0.jar server src/main/resources/config.yml",
+                outputPath + appName + "/" + appName.toLowerCase()
+        );
+        new FleetiProcess(runAPICommand).execute();
     }
 
-    public FleetiBuildAPICommand setAppName(final String appName) {
+    FleetiBuildAPICommand setAppName(final String appName) {
         this.appName = appName;
         return this;
     }
 
-    public FleetiBuildAPICommand setOutputPath(final String outputPath) {
+    FleetiBuildAPICommand setOutputPath(final String outputPath) {
         this.outputPath = outputPath;
         return this;
     }
