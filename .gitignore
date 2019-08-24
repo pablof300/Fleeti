@@ -2,8 +2,11 @@
 *.class
 
 # Maven generated code
-fleeticli/target
+fleeticli/target/*
+fleeti-archetype/target/*
 
 *.DS_Store
 .idea*
-fleeti-archetype/target/*
+fleeti-archetype/.idea/workspace.xml
+fleeticli/.idea/workspace.xml
+fleeticli/dependency-reduced-pom.xml

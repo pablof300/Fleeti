@@ -60,11 +60,27 @@ public class FleetiCreateAppCommand implements Runnable {
                 "-DartifactId=" + appName.toLowerCase(),
                 outputPath + appName);
         final Command archetypeBuilderCommand = new Command(
-                "mvn clean package",serviceBasePath);
+                "mvn clean package", serviceBasePath);
+        final Command createReactAppCommand = new Command(
+                "npx create-react-app ui --typescript", outputPath + appName);
+        final Command addReactRouterToUiCommand = new Command(
+                "yarn add react-router-dom", outputPath + appName + "/ui");
+        final Command addReactRouterTypesToUiCommand = new Command(
+                "npm install @types/react-router-dom", outputPath + appName + "/ui");
+        final Command performNpmChangesCommand = new Command(
+                "npm i", outputPath + appName + "/ui");
+        new FleetiProcess(
+                List.of(archetypeGeneratorCommand,
+                        archetypeBuilderCommand,
+                        createReactAppCommand,
+                        addReactRouterToUiCommand,
+                        addReactRouterTypesToUiCommand,
+                        performNpmChangesCommand)
+        ).execute();
 
-        new FleetiProcess(List.of(archetypeGeneratorCommand, archetypeBuilderCommand)).execute();
         try {
-            FileUtils.moveDirectory(new File(serviceBasePath + "/ui"), new File(outputPath + appName + "/ui"));
+            FileUtils.deleteDirectory(new File(outputPath + appName + "/ui/src"));
+            FileUtils.moveDirectory(new File(serviceBasePath + "/ui"), new File(outputPath + appName + "/ui/src"));
             FileUtils.moveDirectory(new File(serviceBasePath), new File(outputPath + appName + "/service"));
         } catch (IOException e) {
             e.printStackTrace();
