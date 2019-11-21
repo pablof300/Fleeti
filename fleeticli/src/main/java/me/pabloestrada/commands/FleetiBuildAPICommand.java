@@ -64,7 +64,8 @@ public class FleetiBuildAPICommand implements Runnable {
             final File runtimeFile = new File(uiBasePath + "/src/api/runtime.ts");
             final String updatedRuntimeContent = IOUtils.toString(new FileInputStream(runtimeFile), StandardCharsets.UTF_8)
                     .replace("return this.configuration.credentials", "return this.configuration.credentials as RequestCredentials;")
-                    .replace("return this.configuration.headers", "return this.configuration.headers as HTTPHeaders;");
+                    .replace("return this.configuration.headers", "return this.configuration.headers as HTTPHeaders;")
+                    .replace("export const BASE_PATH", "declare type GlobalFetch = WindowOrWorkerGlobalScope\nexport const BASE_PATH");
             IOUtils.write(updatedRuntimeContent, new FileOutputStream(runtimeFile), StandardCharsets.UTF_8);
         } catch (IOException e) {
             e.printStackTrace();
