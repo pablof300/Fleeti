@@ -9,8 +9,8 @@
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
         <configuration>
-          <source>1.8</source>
-          <target>1.8</target>
+          <source>9</source>
+          <target>9</target>
         </configuration>
       </plugin>
       <plugin>
@@ -79,7 +79,7 @@
     </plugins>
   </build>
   <properties>
-    <mainClass>me.pabloestrada.FleetiCommand</mainClass>
+    <mainClass>me.pabloestrada.FleetiCLI</mainClass>
   </properties>
 </project>
 

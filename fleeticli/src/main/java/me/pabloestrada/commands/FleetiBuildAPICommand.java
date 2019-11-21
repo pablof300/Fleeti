@@ -12,12 +12,8 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 
 public class FleetiBuildAPICommand implements Runnable {
-
     @CommandLine.Option(
             names = { "-t" },
             description = "Type of Fleeti subcommand ()")
@@ -58,7 +54,6 @@ public class FleetiBuildAPICommand implements Runnable {
             FileUtils.moveDirectoryToDirectory(new File(apiFilesPath + "/apis"), apiDirectory,true);
             FileUtils.moveFileToDirectory(new File(apiFilesPath + "/index.ts"), apiDirectory, false);
             FileUtils.moveFileToDirectory(new File(apiFilesPath + "/runtime.ts"), apiDirectory, false);
-            FileUtils.deleteDirectory(new File(serviceBasePath + "/target/swagger-specs/tsconfig.json"));
             FileUtils.deleteDirectory(new File(serviceBasePath + "/target/swagger-specs/src"));
 
             final File baseComponentFile = new File(uiBasePath + "/src/components/BaseComponent/BaseComponent.tsx");
