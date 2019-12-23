@@ -3,6 +3,7 @@ package me.pabloestrada.commands;
 import com.sun.tools.javac.util.List;
 import me.pabloestrada.FleetiProcess;
 import me.pabloestrada.ProcessOutput;
+import me.pabloestrada.utility.PathNormalizer;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import picocli.CommandLine;
@@ -39,7 +40,7 @@ public class FleetiBuildAPICommand implements Runnable {
         // Add isProjectBuilt functionality for mvn clean package
         //        final Command archetypeBuilderCommand = new Command(
         //                "mvn clean package",outputPath + appName + "/" + appName.toLowerCase());
-        final String projectBasePath = outputPath + appName;
+        final String projectBasePath =  new PathNormalizer(outputPath, appName).toString();
         final String serviceBasePath = projectBasePath + "/service";
         final String uiBasePath = projectBasePath + "/ui";
         final Command runAPICommand = new Command(
