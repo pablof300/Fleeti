@@ -1,8 +1,6 @@
 package me.pabloestrada.commands;
 
-import com.sun.tools.javac.util.List;
-import me.pabloestrada.FleetiProcess;
-import me.pabloestrada.ProcessOutput;
+import me.pabloestrada.processes.FleetiProcess;
 import me.pabloestrada.utility.PathNormalizer;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -13,6 +11,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 public class FleetiBuildAPICommand implements Runnable {
     @CommandLine.Option(
@@ -36,21 +35,33 @@ public class FleetiBuildAPICommand implements Runnable {
 
     @Override
     public void run() {
-        // TODO
-        // Add isProjectBuilt functionality for mvn clean package
-        //        final Command archetypeBuilderCommand = new Command(
-        //                "mvn clean package",outputPath + appName + "/" + appName.toLowerCase());
         final String projectBasePath =  new PathNormalizer(outputPath, appName).toString();
         final String serviceBasePath = projectBasePath + "/service";
         final String uiBasePath = projectBasePath + "/ui";
+
+        final Command archetypeBuilderCommand = new Command(
+                "mvn clean package", serviceBasePath);
+        final Command runService = new Command(
+                "java -jar target/" + appName + "-1.0.jar server src/main/resources/config.yml", serviceBasePath);
+        final Command getSwaggerSpec = new Command(
+                "curl http://localhost:8080/swagger.json --output src/main/resources/swagger.json", serviceBasePath);
+        new FleetiProcess(List.of(archetypeBuilderCommand)).execute();
+        new FleetiProcess(List.of(getSwaggerSpec)).executeAsync(10);
+        new FleetiProcess(List.of(runService)).execute(20);
+
         final Command runAPICommand = new Command(
-                "openapi-generator generate -g typescript-fetch -i target/swagger-specs/swagger.json -o target/swagger-specs/",
+                "openapi-generator generate -g typescript-fetch -i src/main/resources/swagger.json -o target/swagger-specs/",
                 serviceBasePath
         );
         new FleetiProcess(List.of(runAPICommand)).execute();
         final File apiDirectory = new File(uiBasePath + "/src/api");
-        apiDirectory.mkdir();
+
         try {
+            if (apiDirectory.exists()) {
+                FileUtils.deleteDirectory(apiDirectory);
+            }
+            apiDirectory.mkdir();
+
             final String apiFilesPath = serviceBasePath + "/target/swagger-specs/src";
             FileUtils.moveDirectoryToDirectory(new File(apiFilesPath + "/apis"), apiDirectory,true);
             FileUtils.moveFileToDirectory(new File(apiFilesPath + "/index.ts"), apiDirectory, false);
@@ -68,8 +79,10 @@ public class FleetiBuildAPICommand implements Runnable {
                     .replace("return this.configuration.headers", "return this.configuration.headers as HTTPHeaders;")
                     .replace("export const BASE_PATH", "declare type GlobalFetch = WindowOrWorkerGlobalScope\nexport const BASE_PATH");
             IOUtils.write(updatedRuntimeContent, new FileOutputStream(runtimeFile), StandardCharsets.UTF_8);
-        } catch (IOException e) {
+            System.exit(0);
+        } catch (final IOException e) {
             e.printStackTrace();
+            System.exit(-1);
         }
     }
 

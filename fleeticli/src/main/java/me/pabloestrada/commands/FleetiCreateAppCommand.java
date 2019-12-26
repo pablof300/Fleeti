@@ -1,20 +1,14 @@
 package me.pabloestrada.commands;
 
-import com.sun.tools.javac.util.List;
 import me.pabloestrada.FleetiMessage;
 import me.pabloestrada.FleetiMessageType;
-import me.pabloestrada.FleetiProcess;
-import me.pabloestrada.ProcessOutput;
+import me.pabloestrada.processes.FleetiProcess;
 import me.pabloestrada.utility.PathNormalizer;
 import org.apache.commons.io.FileUtils;
 import picocli.CommandLine;
 
 import java.io.*;
-import java.nio.file.FileSystems;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.concurrent.Executors;
-import java.util.function.Consumer;
+import java.util.List;
 
 @CommandLine.Command(
     name = "FleetiCLI",

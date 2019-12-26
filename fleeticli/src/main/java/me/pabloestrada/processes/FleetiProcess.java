@@ -1,32 +1,44 @@
-package me.pabloestrada;
+package me.pabloestrada.processes;
 
+import me.pabloestrada.FleetiMessage;
+import me.pabloestrada.FleetiMessageType;
 import me.pabloestrada.commands.Command;
-import sun.rmi.log.LogOutputStream;
 
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 public class FleetiProcess
 {
     private List<Command> commands;
-
-    public FleetiProcess(final Command command) {
-        // TODO
-        // Add List.of
-        final List<Command> commands = new ArrayList<>();
-        commands.add(command);
-        this.commands = commands;
-    }
+    private List<Process> allProcesses;
 
     public FleetiProcess(final List<Command> commands) {
         this.commands = commands;
+        this.allProcesses = new ArrayList<>();
     }
 
     public void execute() {
+       runProcess();
+    }
+
+    public void executeAsync(final int delayInSeconds) {
+        Executors.newSingleThreadScheduledExecutor().schedule(this::runProcess, delayInSeconds, TimeUnit.SECONDS);
+    }
+
+    public void execute(final int delayInSeconds) {
+        Executors.newSingleThreadScheduledExecutor().schedule(this::stopFleetiProcess, delayInSeconds, TimeUnit.SECONDS);
+        runProcess();
+    }
+
+    public void stopFleetiProcess() {
+        allProcesses.forEach(Process::destroyForcibly);
+    }
+
+    private void runProcess() {
         commands.forEach(command -> {
             final ProcessBuilder commandBuilder = new ProcessBuilder();
             commandBuilder.command(command.getRawCommand().split(" "));
@@ -35,6 +47,8 @@ public class FleetiProcess
                 final Process commandProcess = commandBuilder.start();
                 final StreamGobbler streamGobbler = new StreamGobbler(commandProcess.getInputStream(), System.out::println);
                 Executors.newSingleThreadExecutor().submit(streamGobbler);
+                allProcesses.add(commandProcess);
+
                 int exitVal = commandProcess.waitFor();
                 if (exitVal == 0) {
                     FleetiMessage.printMessage(
