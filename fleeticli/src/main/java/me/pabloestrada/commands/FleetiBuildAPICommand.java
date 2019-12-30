@@ -49,24 +49,18 @@ public class FleetiBuildAPICommand implements Runnable {
         new FleetiProcess(List.of(getSwaggerSpec)).executeAsync(10);
         new FleetiProcess(List.of(runService)).execute(20);
 
-        final Command runAPICommand = new Command(
-                "openapi-generator generate -g typescript-fetch -i src/main/resources/swagger.json -o target/swagger-specs/",
-                serviceBasePath
-        );
-        new FleetiProcess(List.of(runAPICommand)).execute();
         final File apiDirectory = new File(uiBasePath + "/src/api");
-
         try {
             if (apiDirectory.exists()) {
                 FileUtils.deleteDirectory(apiDirectory);
             }
             apiDirectory.mkdir();
 
-            final String apiFilesPath = serviceBasePath + "/target/swagger-specs/src";
-            FileUtils.moveDirectoryToDirectory(new File(apiFilesPath + "/apis"), apiDirectory,true);
-            FileUtils.moveFileToDirectory(new File(apiFilesPath + "/index.ts"), apiDirectory, false);
-            FileUtils.moveFileToDirectory(new File(apiFilesPath + "/runtime.ts"), apiDirectory, false);
-            FileUtils.deleteDirectory(new File(serviceBasePath + "/target/swagger-specs/src"));
+            final Command runAPICommand = new Command(
+                    "openapi-generator generate -g typescript-fetch -i src/main/resources/swagger.json -o ../ui/src/api/ --skip-validate-spec",
+                    serviceBasePath
+            );
+            new FleetiProcess(List.of(runAPICommand)).execute();
 
             final File baseComponentFile = new File(uiBasePath + "/src/components/BaseComponent/BaseComponent.tsx");
             final String updatedComponentContent = IOUtils.toString(new FileInputStream(baseComponentFile), StandardCharsets.UTF_8)
@@ -75,9 +69,8 @@ public class FleetiBuildAPICommand implements Runnable {
 
             final File runtimeFile = new File(uiBasePath + "/src/api/runtime.ts");
             final String updatedRuntimeContent = IOUtils.toString(new FileInputStream(runtimeFile), StandardCharsets.UTF_8)
-                    .replace("return this.configuration.credentials", "return this.configuration.credentials as RequestCredentials;")
-                    .replace("return this.configuration.headers", "return this.configuration.headers as HTTPHeaders;")
-                    .replace("export const BASE_PATH", "declare type GlobalFetch = WindowOrWorkerGlobalScope\nexport const BASE_PATH");
+                    .replace("export const BASE_PATH", "declare type GlobalFetch = WindowOrWorkerGlobalScope\nexport const BASE_PATH")
+                    .replace("http://localhost", "http://localhost:8080");
             IOUtils.write(updatedRuntimeContent, new FileOutputStream(runtimeFile), StandardCharsets.UTF_8);
             System.exit(0);
         } catch (final IOException e) {

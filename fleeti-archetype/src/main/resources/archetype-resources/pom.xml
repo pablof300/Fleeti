@@ -60,38 +60,6 @@
     <build>
         <plugins>
             <plugin>
-                <groupId>com.github.kongchen</groupId>
-                <artifactId>swagger-maven-plugin</artifactId>
-                <version>3.1.4</version>
-                <configuration>
-                    <apiSources>
-                        <apiSource>
-                            <springmvc>false</springmvc>
-                            <locations>
-                                <location>${package}.api.${name}RestMethods</location>
-                            </locations>
-                            <schemes>http,https</schemes>
-                            <host>localhost:8080</host>
-                            <info>
-                                <title>${name}</title>
-                                <version>1.0</version>
-                            </info>
-                            <templatePath>${basedir}/src/main/resources/strapdown.html</templatePath>
-                            <outputPath>${basedir}/target/swagger-specs/document.html</outputPath>
-                            <swaggerDirectory>${basedir}/target/swagger-specs/</swaggerDirectory>
-                        </apiSource>
-                    </apiSources>
-                </configuration>
-                <executions>
-                    <execution>
-                        <phase>compile</phase>
-                        <goals>
-                            <goal>generate</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
                 <artifactId>maven-shade-plugin</artifactId>
                 <version>2.4.1</version>
                 <configuration>
