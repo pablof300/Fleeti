@@ -2,7 +2,7 @@
 
 - Full-stack application code generator
 
-###Requirements
+### Requirements
 
 - Java *(>= 11)*
 - Maven *(>= 3.6.1)*
