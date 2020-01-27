@@ -2,12 +2,11 @@ package me.pabloestrada.commands;
 
 import me.pabloestrada.FleetiMessage;
 import me.pabloestrada.FleetiMessageType;
+import me.pabloestrada.processes.FleetiPath;
 import me.pabloestrada.processes.FleetiProcess;
-import me.pabloestrada.utility.PathNormalizer;
-import org.apache.commons.io.FileUtils;
+import me.pabloestrada.utility.FleetiFilesUtils;
 import picocli.CommandLine;
 
-import java.io.*;
 import java.util.List;
 
 @CommandLine.Command(
@@ -41,12 +40,8 @@ public class FleetiCreateAppCommand implements Runnable {
 
     public void run() {
         FleetiMessage.printMessage(new FleetiMessage(FleetiMessageType.INFO, "Attempting to generate Fleeti app " + appName));
-        final String baseFolderPath = new PathNormalizer(outputPath, appName).toString();
-        final String serviceBasePath = baseFolderPath + "/" + appName.toLowerCase();
-        final File outputFile = new File(baseFolderPath);
 
-        outputFile.mkdir();
-
+        final FleetiPath fleetiPath = new FleetiPath(outputPath, appName);
         final Command archetypeGeneratorCommand = new Command(
                 "mvn archetype:generate -B " +
                 "-DarchetypeGroupId=me.pabloestrada " +
@@ -57,38 +52,38 @@ public class FleetiCreateAppCommand implements Runnable {
                 "-Dpackage=" + packageName + " " +
                 "-Dname=" + appName + " " +
                 "-DartifactId=" + appName.toLowerCase(),
-                baseFolderPath);
+                fleetiPath.getBaseFolderPath());
         final Command archetypeBuilderCommand = new Command(
-                "mvn clean package", serviceBasePath);
+                "mvn clean package", fleetiPath.getMavenArchetypePath());
         final Command createReactAppCommand = new Command(
-                "npx create-react-app ui --typescript", baseFolderPath);
+                "npx create-react-app ui --typescript", fleetiPath.getBaseFolderPath());
         final Command addReactRouterToUiCommand = new Command(
-                "yarn add react-router-dom", baseFolderPath + "/ui");
+                "yarn add react-router-dom", fleetiPath.getUICodebasePath());
         final Command addReactRouterTypesToUiCommand = new Command(
-                "npm install @types/react-router-dom", baseFolderPath + "/ui");
+                "npm install @types/react-router-dom", fleetiPath.getUICodebasePath());
         final Command performNpmChangesCommand = new Command(
-                "npm i", baseFolderPath + "/ui");
+                "npm i", fleetiPath.getUICodebasePath());
         new FleetiProcess(
                 List.of(archetypeGeneratorCommand,
                         archetypeBuilderCommand,
                         createReactAppCommand,
                         addReactRouterToUiCommand,
                         addReactRouterTypesToUiCommand,
-                        performNpmChangesCommand)
+                        performNpmChangesCommand
+                        )
         ).execute();
 
-        try {
-            FileUtils.deleteDirectory(new File(baseFolderPath + "/ui/src"));
-            FileUtils.moveDirectory(new File(serviceBasePath + "/ui"), new File(baseFolderPath + "/ui/src"));
-            FileUtils.moveDirectory(new File(serviceBasePath), new File(baseFolderPath + "/service"));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        FleetiFilesUtils.replaceUIWithTemplateCode(fleetiPath);
+        FleetiFilesUtils.renameMavenProjectToServiceCodebase(fleetiPath);
+
+
         new FleetiBuildAPICommand()
             .setAppName(appName)
             .setOutputPath(outputPath)
             .setProjectBuilt(true)
             .run();
+
+
         System.exit(0);
     }
 }

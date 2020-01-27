@@ -3,6 +3,7 @@ package me.pabloestrada.processes;
 import me.pabloestrada.FleetiMessage;
 import me.pabloestrada.FleetiMessageType;
 import me.pabloestrada.commands.Command;
+import me.pabloestrada.utility.PlatformUtils;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -34,14 +35,14 @@ public class FleetiProcess
         runProcess();
     }
 
-    public void stopFleetiProcess() {
+    private void stopFleetiProcess() {
         allProcesses.forEach(Process::destroyForcibly);
     }
 
     private void runProcess() {
         commands.forEach(command -> {
             final ProcessBuilder commandBuilder = new ProcessBuilder();
-            commandBuilder.command(command.getRawCommand().split(" "));
+            commandBuilder.command(PlatformUtils.getSystemSpecificCommand(command.getRawCommand()).split(" "));
             commandBuilder.directory(new File(command.getPath()));
             try {
                 final Process commandProcess = commandBuilder.start();
